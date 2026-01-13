@@ -1,0 +1,22 @@
+[package]
+name = "my-rust-connector-kernel"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+windows-sys = { version = "0.52", features = [
+    "Win32_Foundation",
+
+    "Win32_Storage_FileSystem",
+    "Win32_System_SystemServices",
+    "Win32_System_Threading",
+    "Win32_Security",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+]}
+
+log = "0.4"
+env_logger = "0.11"
+once_cell = "1.21.3"
+ctrlc = "3.5.1"
+    
