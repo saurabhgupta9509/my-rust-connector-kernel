@@ -5,6 +5,9 @@ use std::os::windows::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
+use crate::nt_path_resolver::NtPathResolver;
+use crate::policy::PathResolver;
+
 use super::fs_index::{FilesystemIndex, FileSystemNode, EntryType};
 use super::path_normalizer::PathNormalizer;
 use std::sync::Arc;
@@ -29,21 +32,23 @@ impl Default for ScanConfig {
 /// Main scanner with lazy loading
 pub struct FileSystemScanner {
     index: Arc<FilesystemIndex>,
+    path_resolver: Arc<PathResolver>,  // For DOS → NT path conversion
     config: ScanConfig,
 }
 
 impl FileSystemScanner {
     /// Create a new scanner
-    pub fn new(index: Arc<FilesystemIndex>) -> Self {
+    pub fn new(index: Arc<FilesystemIndex>,path_resolver: Arc<PathResolver>) -> Self {
         FileSystemScanner {
             index,
+            path_resolver,  
             config: ScanConfig::default(),
         }
     }
     
     /// Create with custom configuration
-    pub fn with_config(index: Arc<FilesystemIndex>, config: ScanConfig) -> Self {
-        FileSystemScanner { index, config }
+    pub fn with_config(index: Arc<FilesystemIndex>, path_resolver: Arc<PathResolver>, config: ScanConfig) -> Self {
+        FileSystemScanner { index, path_resolver, config }
     }
     
     /// Initialize with drives only (NO full scan)
@@ -64,10 +69,20 @@ impl FileSystemScanner {
                 match fs::metadata(&drive_path) {
                     Ok(_) => {
                         // PLACEHOLDER: Get NT path (would use QueryDosDevice in production)
-                        let nt_path = PathNormalizer::dos_to_nt_path_placeholder(
+                        let nt_path_result  = NtPathResolver::dos_to_nt_path(
                             &drive_letter, 
                             true
                         );
+                        
+                            // Handle the Result
+                        let nt_path = match nt_path_result {
+                            Ok(path) => path,
+                            Err(e) => {
+                                println!("⚠️ Failed to get NT path for {}: {}", drive_letter, e);
+                                // Use a fallback or continue to next drive
+                                continue;
+                            }
+                        };
                         
                         let display_name = if letter == b'C' {
                             "Local Disk (C:)".to_string()
@@ -223,9 +238,30 @@ impl FileSystemScanner {
         };
         
         // PLACEHOLDER: Create NT path
-        let nt_path = PathNormalizer::dos_to_nt_path_placeholder(&display_path, 
-            entry_type == EntryType::Directory);
-        
+        // let nt_path = PathNormalizer::dos_to_real_nt_path(&display_path, 
+        //     entry_type == EntryType::Directory);
+        // let nt_path = self.path_resolver.dos_to_real_nt_path(&display_path)?;
+         // TEMPORARY: Use empty NT path or placeholder
+           let is_folder = entry_type == EntryType::Directory || entry_type == EntryType::Drive;
+            // let nt_path = match self.path_resolver.(&display_path) {
+            //     Ok(path) => path,
+            //     Err(e) => {
+            //         println!("⚠️ Failed to convert DOS to NT path: {}", e);
+            //         println!("   Using placeholder for: {}", display_path);
+            //         // Use placeholder or empty string
+            //         PathNormalizer::dos_to_nt_path_placeholder(&display_path, 
+            //             entry_type == EntryType::Directory)
+            //     }
+            // };
+            let nt_path = match NtPathResolver::dos_to_nt_path(&display_path, is_folder) {
+                Ok(path) => path,
+                Err(e) => {
+                    println!("⚠️ Failed to convert DOS to NT path: {}", e);
+                    // Fallback - use display path as NT path (kernel won't match, but won't crash)
+                    display_path.clone()
+                }
+            };
+            
         // Get timestamps
         let modified_time = metadata.modified()
             .unwrap_or_else(|_| SystemTime::now())

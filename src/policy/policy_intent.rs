@@ -138,36 +138,7 @@ impl PolicyIntent {
             comment: comment.map(|s| s.to_string()),
         }
     }
-    
-    // /// Validate the intent (basic sanity checks)
-    // pub fn validate(&self) -> Result<(), String> {
-    //     // Node ID must be non-zero
-    //     if self.node_id == 0 {
-    //         return Err("Invalid node ID (0)".to_string());
-    //     }
-        
-    //     // Folder cannot have execute protection
-    //     if matches!(self.scope, ProtectionScope::Folder | ProtectionScope::FolderRecursive)
-    //         && self.operations.execute  && !self.operations.read {
-    //         return Err("Folders cannot have execute protection".to_string());
-    //     }
-        
-    //     // Created by cannot be empty
-    //     if self.created_by.trim().is_empty() {
-    //         return Err("Creator name cannot be empty".to_string());
-    //     }
 
-    //     // ⚠️ ISSUE A FIX: Allow + Read is not allowed
-    //     if self.action == ProtectionAction::Allow && self.operations.read {
-    //         return Err("READ cannot be used with Allow action".to_string());
-    //     }
-    //         // Warn if READ is selected (master switch)
-    //     if self.operations.read {
-    //         println!("⚠️  READ selected: Applying BLOCK ALL semantics");
-    //         println!("   All operations will be blocked (read, write, delete, rename, create, copy, execute)");
-    //     }
-    //     Ok(())
-    // }
     
     pub fn validate(&self) -> Result<(), String> {
 
@@ -183,12 +154,12 @@ impl PolicyIntent {
             return Err("CREATE operation is not allowed for File scope".to_string());
         }
 
-        // ❌ Folder cannot have execute unless READ is true
-        if matches!(self.scope, ProtectionScope::Folder | ProtectionScope::FolderRecursive)
-            && !self.operations.read
-        {
-            return Err("Folders cannot have execute protection".to_string());
-        }
+        // // ❌ Folder cannot have execute unless READ is true
+        // if matches!(self.scope, ProtectionScope::Folder | ProtectionScope::FolderRecursive)
+        //     && !self.operations.read
+        // {
+        //     return Err("Folders cannot have execute protection".to_string());
+        // }
 
         // Created by cannot be empty
         if self.created_by.trim().is_empty() {

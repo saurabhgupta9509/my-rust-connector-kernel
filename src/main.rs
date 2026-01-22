@@ -1971,11 +1971,14 @@ mod ui;
 mod policy;
 mod networking;
 mod kernel;
+mod nt_path_resolver;
 use fs_index::FilesystemIndex;
 use filesystem_scanner::FileSystemScanner;
 use query_interface::QueryInterface;
 
 use std::sync::Arc;
+
+use crate::policy::PathResolver;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
@@ -1989,7 +1992,9 @@ async fn main() -> Result<(), String> {
     println!("🧱 STEP 1: Building Filesystem Index...");
 
     let index = Arc::new(FilesystemIndex::new());
-    let scanner = FileSystemScanner::new(index.clone());
+    // Create path resolver
+    let path_resolver = Arc::new(PathResolver::new(index.clone()));
+    let scanner = FileSystemScanner::new(index.clone(), path_resolver.clone());
     let query = QueryInterface::new(index.clone());
 
     // Initialize drives only (no full scan)
