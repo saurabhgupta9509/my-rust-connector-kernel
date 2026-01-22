@@ -54,7 +54,7 @@ pub struct FilePolicy {
 }
 
 impl FilePolicy  {
-    /// Create from KernelPolicy
+    /// Create from 
     // pub fn from_kernel_policy(policy: &KernelPolicy) -> Self {
     //     // Convert NT path to UTF-16
     //     let mut path_wide = [0u16; 260];
@@ -143,6 +143,11 @@ impl FilePolicy  {
 
 
 pub fn from_kernel_policy(policy: &KernelPolicy) -> Self {
+
+     println!("🔧 DEBUG: Creating FilePolicy from KernelPolicy:");
+     println!("  NT Path: {}", policy.nt_path);
+     println!("  Block All: {}", policy.block_all);
+
     // -----------------------------
     // NT path → UTF-16 (MAX 259)
     // -----------------------------

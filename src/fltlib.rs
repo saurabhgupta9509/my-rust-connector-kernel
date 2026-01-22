@@ -1,4 +1,4 @@
-use windows_sys::Win32::Foundation::*;
+use windows_sys::Win32::{Foundation::*, Storage::FileSystem::QueryDosDeviceW};
 
 #[link(name = "fltlib")]
 extern "system" {
@@ -19,4 +19,26 @@ extern "system" {
         dwOutBufferSize: u32,
         lpBytesReturned: *mut u32,
     ) -> NTSTATUS;
+}
+
+pub fn query_dos_device(device_name: &str) -> Result<String, String> {
+    let device_wide: Vec<u16> = device_name.encode_utf16().chain(Some(0)).collect();
+    let mut target_path = vec![0u16; MAX_PATH as usize];
+    
+    unsafe {
+        let result = QueryDosDeviceW(
+            device_wide.as_ptr(),
+            target_path.as_mut_ptr(),
+            MAX_PATH
+        );
+        
+        if result == 0 {
+            return Err(format!("QueryDosDevice failed for {}", device_name));
+        }
+        
+        // Convert wide string to UTF-8
+        let len = target_path.iter().position(|&c| c == 0).unwrap_or(0);
+        let path = String::from_utf16_lossy(&target_path[..len]);
+        Ok(path)
+    }
 }

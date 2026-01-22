@@ -20,14 +20,14 @@ pub struct KernelPolicy {
     pub policy_id: u64, // Unique policy ID
     pub nt_path: String, // NT path from PathResolver (INTERNAL ONLY)
     pub match_type: PathMatchType, // How to match the path
-    pub is_recursive: bool, // For folders: apply to subfolders
+    // pub is_recursive: bool, // For folders: apply to subfolders
     pub blocked_ops: KernelOperations, // Operations to block
-    pub audit_ops: KernelOperations, // Operations to audit (monitor)
+    // pub audit_ops: KernelOperations, // Operations to audit (monitor)
 
     pub block_all: bool, // Whether this policy blocks all operations (from READ)
     pub created_by: String, // Admin who created it
     pub timestamp: u64, // When created
-    pub comment: Option<String>, // Optional comment
+    // pub comment: Option<String>, // Optional comment
 }
 
 /// Kernel operations (binary flags for kernel)
@@ -235,13 +235,13 @@ impl PolicyNormalizer {
                     policy_id,
                     nt_path: normalized_path,
                     match_type,
-                    is_recursive,
+                    // is_recursive,
                     blocked_ops,
-                    audit_ops,
+                    // audit_ops,
                     block_all: is_block_all,
                     created_by: intent.created_by.clone(),
                     timestamp: intent.timestamp,
-                    comment: intent.comment.clone(),
+                    // comment: intent.comment.clone(),
                 };
 
                 println!("   ✅ Created kernel policy ID {} for path", policy_id);
@@ -325,23 +325,6 @@ impl KernelPolicy {
             "delete" => self.blocked_ops.delete,
             "rename" => self.blocked_ops.rename,
             "create" => self.blocked_ops.create,
-            _ => false,
-        }
-    }
-
-    /// Check if operation should be audited
-    pub fn should_audit_operation(&self, operation: &str) -> bool {
-        match operation {
-            "read" => {
-                // ✅ FIXED: For audit, we can have read auditing
-                // But read is not in KernelOperations, so we need to track it separately
-                // For now, return false as audit_ops doesn't have read field
-                false
-            }
-            "write" => self.audit_ops.write,
-            "delete" => self.audit_ops.delete,
-            "rename" => self.audit_ops.rename,
-            "create" => self.audit_ops.create,
             _ => false,
         }
     }

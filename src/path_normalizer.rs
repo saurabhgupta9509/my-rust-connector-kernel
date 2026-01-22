@@ -34,35 +34,68 @@ impl PathNormalizer {
     
     /// PLACEHOLDER: Convert DOS path to NT format
     /// ⚠️ TODO: Implement proper Windows API conversion (QueryDosDevice, NtCreateFile, etc.)
-    pub fn dos_to_nt_path_placeholder(dos_path: &str, is_folder: bool) -> String {
-        // This is a PLACEHOLDER - real implementation would use:
-        // 1. QueryDosDevice to get device mapping
-        // 2. NtCreateFile with OBJ_CASE_INSENSITIVE
-        // 3. QueryObject to get NT path
+    // pub fn dos_to_nt_path_placeholder(dos_path: &str, is_folder: bool) -> String {
+    //     // This is a PLACEHOLDER - real implementation would use:
+    //     // 1. QueryDosDevice to get device mapping
+    //     // 2. NtCreateFile with OBJ_CASE_INSENSITIVE
+    //     // 3. QueryObject to get NT path
         
-        let normalized = Self::normalize_display_path(dos_path);
+    //     let normalized = Self::normalize_display_path(dos_path);
         
-        // Simple placeholder conversion
-        if normalized.starts_with("C:") {
-            if is_folder {
-                format!("\\Device\\HarddiskVolume4\\{}", &normalized[2..])
-            } else {
-                format!("\\Device\\HarddiskVolume4\\{}", &normalized[2..])
-            }
-        } else if normalized.starts_with("D:") {
-            if is_folder {
-                format!("\\Device\\HarddiskVolume5\\{}", &normalized[2..])
-            } else {
-                format!("\\Device\\HarddiskVolume5\\{}", &normalized[2..])
-            }
-        } else {
-            // Generic fallback
-            if is_folder {
-                format!("\\Device\\HarddiskVolume4\\Placeholder\\{}", normalized)
-            } else {
-                format!("\\Device\\HarddiskVolume4\\Placeholder\\{}", normalized)
-            }
+    //     // Simple placeholder conversion
+    //     if normalized.starts_with("C:") {
+    //         if is_folder {
+    //             format!("\\Device\\HarddiskVolume4\\{}", &normalized[2..])
+    //         } else {
+    //             format!("\\Device\\HarddiskVolume4\\{}", &normalized[2..])
+    //         }
+    //     } else if normalized.starts_with("D:") {
+    //         if is_folder {
+    //             format!("\\Device\\HarddiskVolume5\\{}", &normalized[2..])
+    //         } else {
+    //             format!("\\Device\\HarddiskVolume5\\{}", &normalized[2..])
+    //         }
+    //     } else {
+    //         // Generic fallback
+    //         if is_folder {
+    //             format!("\\Device\\HarddiskVolume4\\Placeholder\\{}", normalized)
+    //         } else {
+    //             format!("\\Device\\HarddiskVolume4\\Placeholder\\{}", normalized)
+    //         }
+    //     }
+    // }
+    
+        pub fn dos_to_nt_path_placeholder(dos_path: &str, is_folder: bool) -> String {
+        let mut normalized = dos_path.trim().replace('/', "\\");
+        
+        // Remove trailing backslash for files
+        if !is_folder && normalized.ends_with('\\') {
+            normalized.pop();
         }
+        // Add trailing backslash for folders
+        else if is_folder && !normalized.ends_with('\\') {
+            normalized.push('\\');
+        }
+        
+        // ⭐⭐ CRITICAL FIX: Remove drive letter and colon
+        // C:\Folder → \Folder
+        // D:\File.txt → \File.txt
+        let path_without_drive = if normalized.starts_with("C:") || normalized.starts_with("D:") || 
+                                   normalized.starts_with("E:") {
+            &normalized[2..]  // Skip "C:" or "D:"
+        } else {
+            &normalized
+        };
+        
+        // Add proper NT prefix
+        let nt_path = if is_folder {
+            format!("\\Device\\HarddiskVolume4{}", path_without_drive)
+        } else {
+            format!("\\Device\\HarddiskVolume4{}", path_without_drive)
+        };
+        
+        println!("🔧 PathNormalizer: Converted {} → {}", dos_path, nt_path);
+        nt_path
     }
     
     /// Validate path format
