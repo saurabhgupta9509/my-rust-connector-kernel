@@ -1960,7 +1960,7 @@
 // }
 
 /*  Step 1 + Step 2 + Step 3 + step 4  + step 5*/
-// main.rs (complete working version WITH STEP 3)
+// main.rs
 mod fs_index;
 mod path_normalizer;
 mod filesystem_scanner;
@@ -2327,26 +2327,6 @@ async fn demonstrate_step3_ui_behavior_with_errors(explorer: &ui::ExplorerContro
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // pub mod fltlib;
 // use fltlib::*;
 // use windows_sys::Win32::Foundation::*;
@@ -2647,31 +2627,39 @@ async fn demonstrate_step3_ui_behavior_with_errors(explorer: &ui::ExplorerContro
 //     println!();
 
 //     // TEST: Apply some initial policies
-    // println!("1. Setting immutability for NT folder:");
-    // apply_policy(
-    //     handle,
-    //     "\\Device\\HarddiskVolume4\\Agentstarts",
-    //     true,    // folder
-    //     0,       // block_read = 0 (ALLOW reading)
-    //     1,       // block_write = 1 (BLOCK modifications)
-    //     1,       // block_delete = 1 (BLOCK deletion)
-    //     1,       // block_rename = 1 (BLOCK rename)
-    //     1,       // block_create = 1 (BLOCK new files)
-    //     0        // block_all = 0
-    // );
+//     println!("1. Setting immutability for NT folder:");
+//     apply_policy(
+//         handle,
+//         "\\Device\\HarddiskVolume4\\Agentstarts",
+//         true,    // folder
+//         0,       // block_read = 0 (ALLOW reading)
+//         1,       // block_write = 1 (BLOCK modifications)
+//         1,       // block_delete = 1 (BLOCK deletion)
+//         1,       // block_rename = 1 (BLOCK rename)
+//         1,       // block_create = 1 (BLOCK new files)
+//         0        // block_all = 0
+//     );
 
-    // println!("\n2. Protecting specific file: ");
-    // apply_policy(
-    //     handle,
-    //     "\\Device\\HarddiskVolume4\\TopSecret\\Saurabh_Gupta_Resum.pdf",
-    //     false,   // file
-    //     0,       // block_read = 0
-    //     0,       // block_write = 1
-    //     0,       // block_delete = 1
-    //     0,       // block_rename = 1
-    //     0,       // block_create = 0 (N/A for files)
-    //     1        // block_all = 0
-    // );
+//     println!("\n2. Protecting specific file: ");
+//     apply_policy(
+//         handle,
+//         "\\Device\\HarddiskVolume4\\TopSecret\\Saurabh_Gupta_Resum.pdf",
+//         false,   // file
+//         0,       // block_read = 0
+//         0,       // block_write = 1
+//         0,       // block_delete = 1
+//         0,       // block_rename = 1
+//         0,       // block_create = 0 (N/A for files)
+//         1        // block_all = 0
+//     );
+
+//        false,   // file
+//         0,       // block_read = 0 ye hmesha 0 rhega kyuki ye work nhi krta hai isliye 
+//         0,       // block_write = 0
+//         0,       // block_delete = 0
+//         0,       // block_rename = 0
+//         0,       // block_create = 0 (N/A for files)
+//         1        // block_all = 1 abhi maine blaock_all ko 1 kiya hai to isme sab blaock hoga including the read bhi alag se kuchh kren ki jrurat nhi hai 
 
 //     println!("\n============================");
 //     println!("PHASE-1 ACTIVE");

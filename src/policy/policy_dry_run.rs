@@ -104,8 +104,6 @@ impl DryRunEvaluator {
                 "delete" => intent.operations.delete,
                 "rename" => intent.operations.rename,
                 "create" => intent.operations.create,
-                "copy" => intent.operations.copy,
-                "execute" => intent.operations.execute,
                 _ => false,
             };
             
@@ -154,8 +152,7 @@ impl DryRunEvaluator {
             ("Save changes", intent.operations.write),
             ("Delete", intent.operations.delete),
             ("Rename", intent.operations.rename),
-            ("Copy/Duplicate", intent.operations.copy),
-            ("Execute/Run", intent.operations.execute),
+            ("Create new file", intent.operations.create),
         ];
         
         for (name, selected) in operations {

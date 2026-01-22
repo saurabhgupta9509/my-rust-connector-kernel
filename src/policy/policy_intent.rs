@@ -31,8 +31,6 @@ pub struct ProtectionOperations {
     pub delete: bool,        // Block/Allow/Audit delete
     pub rename: bool,        // Block/Allow/Audit rename
     pub create: bool,        // Block/Allow/Audit create (folders only)
-    pub copy: bool,         // Block/Allow/Audit copy/duplicate
-    pub execute: bool,      // Block/Allow/Audit execute (files only)
 }
 
 impl Default for ProtectionOperations {
@@ -43,8 +41,6 @@ impl Default for ProtectionOperations {
             delete: true,
             rename: true,
             create: true,
-            copy: true,
-            execute: false,
         }
     }
 }
@@ -58,8 +54,6 @@ impl ProtectionOperations {
             delete: true,    // Block delete
             rename: true,    // Block rename
             create: true,    // Block create
-            copy: true,      // Block copy
-            execute: true,  // Allow execute
         }
     }
     
@@ -71,8 +65,6 @@ impl ProtectionOperations {
             delete: true,    // Block delete
             rename: true,    // Block rename
             create: true,    // Block create
-            copy: true,      // Block copy
-            execute: true,   // Block execute
         }
     }
     
@@ -84,8 +76,6 @@ impl ProtectionOperations {
             delete: false,    // Audit delete
             rename: false,    // Audit rename
             create: false,    // Audit create
-            copy: false,      // Audit copy
-            execute: false,   // Audit execute
         }
     }
 
@@ -105,8 +95,6 @@ impl ProtectionOperations {
                 delete: true,
                 rename: true,
                 create: true,
-                copy: true,
-                execute: true,
             }
         } else {
             // Normal case: pass through individual flags
@@ -197,7 +185,6 @@ impl PolicyIntent {
 
         // ❌ Folder cannot have execute unless READ is true
         if matches!(self.scope, ProtectionScope::Folder | ProtectionScope::FolderRecursive)
-            && self.operations.execute
             && !self.operations.read
         {
             return Err("Folders cannot have execute protection".to_string());
@@ -247,8 +234,6 @@ impl PolicyIntent {
             if self.operations.delete { ops.push("delete"); }
             if self.operations.rename { ops.push("rename"); }
             if self.operations.create { ops.push("create"); }
-            if self.operations.copy { ops.push("copy"); }
-            if self.operations.execute { ops.push("execute"); }
             ops
         };  
         

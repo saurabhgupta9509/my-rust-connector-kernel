@@ -74,12 +74,6 @@ impl PolicyGuard {
             warnings.push("No actual blocking will occur".to_string());
         }
         
-        // Rule 5: Folder with execute protection warning
-        if matches!(intent.scope, ProtectionScope::Folder | ProtectionScope::FolderRecursive)
-            && intent.operations.execute {
-            warnings.push("Folders typically don't have execute operations".to_string());
-        }
-        
         // Determine if valid
         let is_valid = errors.is_empty();
         

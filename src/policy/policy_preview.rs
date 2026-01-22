@@ -41,7 +41,10 @@ impl PolicyPreviewService {
             }
         };
         
-        let is_block_all = effective_ops.is_block_all();
+        // let is_block_all = effective_ops.is_block_all();
+        let is_block_all =
+        intent.action == ProtectionAction::Block &&
+        intent.operations.read;
         let human_readable = Self::generate_human_readable(intent, &effective_ops, is_block_all);
         
         PolicyPreview {
@@ -76,8 +79,6 @@ impl PolicyPreviewService {
             if intent.operations.delete { ops.push("DELETE"); }
             if intent.operations.rename { ops.push("RENAME"); }
             if intent.operations.create { ops.push("CREATE"); }
-            if intent.operations.copy { ops.push("COPY"); }
-            if intent.operations.execute { ops.push("EXECUTE"); }
             ops
         };
         
@@ -112,16 +113,12 @@ impl PolicyPreviewService {
                 if effective_ops.delete { lines.push("  ✓ Block Delete".to_string()); }
                 if effective_ops.rename { lines.push("  ✓ Block Rename".to_string()); }
                 if effective_ops.create { lines.push("  ✓ Block Create".to_string()); }
-                if effective_ops.copy { lines.push("  ✓ Block Copy".to_string()); }
-                if effective_ops.execute { lines.push("  ✓ Block Execute".to_string()); }
             } else if intent.action == ProtectionAction::Allow {
                 lines.push("Allowed operations:".to_string());
                 if !effective_ops.write { lines.push("  ✓ Allow Write".to_string()); }
                 if !effective_ops.delete { lines.push("  ✓ Allow Delete".to_string()); }
                 if !effective_ops.rename { lines.push("  ✓ Allow Rename".to_string()); }
                 if !effective_ops.create { lines.push("  ✓ Allow Create".to_string()); }
-                if !effective_ops.copy { lines.push("  ✓ Allow Copy".to_string()); }
-                if !effective_ops.execute { lines.push("  ✓ Allow Execute".to_string()); }
             }
         }
         
@@ -131,21 +128,17 @@ impl PolicyPreviewService {
     
     /// Get quick summary of policy impact
     pub fn get_quick_summary(intent: &PolicyIntent) -> String {
-
+         if intent.action == ProtectionAction::Block && intent.operations.read {
+                return "BLOCK ALL ACCESS (READ selected)".to_string();
+            }
         let expanded_ops = intent.operations.expand_for_kernel();
         let effective_ops = KernelOperations::from_protection_operations(&expanded_ops, intent.action);
-        
-        if effective_ops.is_block_all() {
-            return "BLOCK ALL ACCESS (READ selected)".to_string();
-        }
         
         let blocked_count = [
             effective_ops.write,
             effective_ops.delete,
             effective_ops.rename,
             effective_ops.create,
-            effective_ops.copy,
-            effective_ops.execute,
         ].iter().filter(|&&b| b).count();
         
         match intent.action {

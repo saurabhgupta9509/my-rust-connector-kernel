@@ -78,6 +78,8 @@ pub struct ApplyPolicyRequest {
     pub created_by: String,
     pub comment: Option<String>,
     pub confirmed: bool,        // ✅ Add confirmation flag
+     #[serde(default)]  // Optional field with default
+    pub timestamp: Option<u64>,
 }
 
 /// Policy operations for HTTP API
@@ -88,8 +90,7 @@ pub struct PolicyOperations {
     pub delete: bool,
     pub rename: bool,
     pub create: bool,
-    pub copy: bool,
-    pub execute: bool,
+
 }
 
 /// Agent HTTP Server
@@ -216,8 +217,6 @@ async fn policy_dry_run_handler(
         delete: request.operations.delete,
         rename: request.operations.rename,
         create: request.operations.create,
-        copy: request.operations.copy,
-        execute: request.operations.execute,
     };
     
     let intent = PolicyIntent::new(
@@ -341,8 +340,6 @@ async fn policy_validate_handler(
         delete: request.operations.delete,
         rename: request.operations.rename,
         create: request.operations.create,
-        copy: request.operations.copy,
-        execute: request.operations.execute,
     };
     
     let intent = PolicyIntent::new(
@@ -636,7 +633,9 @@ async fn apply_policy(
     // HTTP-level validation
     let operations = &request.operations;
     if !operations.read && !operations.write && !operations.delete && 
-       !operations.rename && !operations.create && !operations.copy && !operations.execute {
+       !operations.rename && !operations.create 
+    //    && !operations.copy && !operations.execute 
+       {
         let error = ErrorResponse {
             code: "INVALID_REQUEST".to_string(),
             message: "At least one operation must be selected".to_string(),
@@ -644,13 +643,13 @@ async fn apply_policy(
         return (StatusCode::BAD_REQUEST, Json(StandardApiResponse::error(error)));
     }
     
-    if (request.scope == "folder" || request.scope == "folder_recursive") && operations.execute {
-        let error = ErrorResponse {
-            code: "INVALID_REQUEST".to_string(),
-            message: "Folders cannot have execute protection".to_string(),
-        };
-        return (StatusCode::BAD_REQUEST, Json(StandardApiResponse::error(error)));
-    }
+    // if (request.scope == "folder" || request.scope == "folder_recursive") && operations.execute {
+    //     let error = ErrorResponse {
+    //         code: "INVALID_REQUEST".to_string(),
+    //         message: "Folders cannot have execute protection".to_string(),
+    //     };
+    //     return (StatusCode::BAD_REQUEST, Json(StandardApiResponse::error(error)));
+    // }
     
     if request.created_by.trim().is_empty() {
         let error = ErrorResponse {
@@ -693,8 +692,7 @@ async fn apply_policy(
         delete: request.operations.delete,
         rename: request.operations.rename,
         create: request.operations.create,
-        copy: request.operations.copy,
-        execute: request.operations.execute,
+       
     };
     
     let intent = PolicyIntent::new(
@@ -706,45 +704,81 @@ async fn apply_policy(
         request.comment.as_deref(),
     );
     
-    match state.policy_engine.apply_protection(intent.clone()) {
-        Ok(policy_id) => {
-            println!("   ✅ Policy applied successfully (ID: {})", policy_id);
+
+    // match state.policy_engine.apply_protection(intent.clone()) {
+    //     Ok(policy_id) => {
+    //         println!("   ✅ Policy applied successfully (ID: {})", policy_id);
             
-            let scope_str = match intent.scope {
-                ProtectionScope::File => "file",
-                ProtectionScope::Folder => "folder",
-                ProtectionScope::FolderRecursive => "folder_recursive",
-            };
+    //         let scope_str = match intent.scope {
+    //             ProtectionScope::File => "file",
+    //             ProtectionScope::Folder => "folder",
+    //             ProtectionScope::FolderRecursive => "folder_recursive",
+    //         };
             
-            let action_str = match intent.action {
-                ProtectionAction::Block => "block",
-                ProtectionAction::Allow => "allow",
-                ProtectionAction::Audit => "audit",
-            };
+    //         let action_str = match intent.action {
+    //             ProtectionAction::Block => "block",
+    //             ProtectionAction::Allow => "allow",
+    //             ProtectionAction::Audit => "audit",
+    //         };
             
-            state.ws_server.broadcast_policy_applied(
-                policy_id,
-                intent.node_id,
-                scope_str,
-                action_str,
-            );
+    //         state.ws_server.broadcast_policy_applied(
+    //             policy_id,
+    //             intent.node_id,
+    //             scope_str,
+    //             action_str,
+    //         );
             
-            let response = serde_json::json!({
-                "policy_id": policy_id,
-                "message": "Policy applied successfully",
-                "note": "NT path resolved internally and sent to kernel",
-            });
-            (StatusCode::CREATED, Json(StandardApiResponse::success(response)))
-        }
-        Err(e) => {
-            println!("   ❌ Failed to apply policy: {}", e);
-            let error = ErrorResponse {
-                code: "POLICY_APPLICATION_FAILED".to_string(),
-                message: e,
-            };
-            (StatusCode::BAD_REQUEST, Json(StandardApiResponse::error(error)))
-        }
+    //         let response = serde_json::json!({
+    //             "policy_id": policy_id,
+    //             "message": "Policy applied successfully",
+    //             "note": "NT path resolved internally and sent to kernel",
+    //         });
+    //         (StatusCode::CREATED, Json(StandardApiResponse::success(response)))
+    //     }
+    //     Err(e) => {
+    //         println!("   ❌ Failed to apply policy: {}", e);
+    //         let error = ErrorResponse {
+    //             code: "POLICY_APPLICATION_FAILED".to_string(),
+    //             message: e,
+    //         };
+    //         (StatusCode::BAD_REQUEST, Json(StandardApiResponse::error(error)))
+    //     }
+    // }
+
+    let engine = state.policy_engine.clone();
+    let intent_clone = intent.clone();
+    let confirmed = request.confirmed;
+    let result = tokio::task::spawn_blocking(move || {
+            engine.apply_protection_with_assurance(intent_clone, confirmed)
+        })
+        .await;
+match result {
+    Ok(Ok(policy_id)) => {
+        println!("   ✅ Policy applied successfully (ID: {})", policy_id);
+
+        let response = serde_json::json!({
+            "policy_id": policy_id,
+            "message": "Policy applied successfully",
+        });
+
+        (StatusCode::CREATED, Json(StandardApiResponse::success(response)))
     }
+    Ok(Err(e)) => {
+        let error = ErrorResponse {
+            code: "POLICY_APPLICATION_FAILED".to_string(),
+            message: e,
+        };
+        (StatusCode::BAD_REQUEST, Json(StandardApiResponse::error(error)))
+    }
+    Err(_) => {
+        let error = ErrorResponse {
+            code: "INTERNAL_ERROR".to_string(),
+            message: "Kernel task panicked".to_string(),
+        };
+        (StatusCode::INTERNAL_SERVER_ERROR, Json(StandardApiResponse::error(error)))
+    }
+}
+
 }
 
 /// DELETE /api/v1/policies/:policy_id
@@ -911,8 +945,6 @@ async fn policy_preview_handler(
         delete: request.operations.delete,
         rename: request.operations.rename,
         create: request.operations.create,
-        copy: request.operations.copy,
-        execute: request.operations.execute,
     };
     
     let intent = PolicyIntent::new(

@@ -28,8 +28,6 @@ pub enum KernelOperation {
     Delete,
     Rename,
     Create,
-    Execute,  // Files only
-    Copy,
     QueryInfo, // Metadata read
     SetInfo,   // Metadata write
 }
@@ -120,8 +118,6 @@ impl KernelEventBridge {
             KernelOperation::Delete => "delete".to_string(),
             KernelOperation::Rename => "rename".to_string(),
             KernelOperation::Create => "create".to_string(),
-            KernelOperation::Execute => "execute".to_string(),
-            KernelOperation::Copy => "copy".to_string(),
             KernelOperation::QueryInfo => "query_info".to_string(),
             KernelOperation::SetInfo => "set_info".to_string(),
         }

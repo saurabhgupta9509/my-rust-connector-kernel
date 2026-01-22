@@ -1,7 +1,7 @@
 //! Path Resolver (STEP 4.2)
 //! Core Principle: Only Agent resolves IDs to NT paths, never exposed to Admin
 
-use crate::fs_index::FilesystemIndex;
+use crate::fs_index::{EntryType, FilesystemIndex};
 use crate::policy::policy_intent::{PolicyIntent, ProtectionScope};
 use std::sync::Arc;
 
@@ -21,46 +21,84 @@ impl PathResolver {
         &self.index
     }
     
-    fn normalize_nt_path(mut path: String) -> String {
-    // Collapse \\ into \
-        while path.contains("\\\\") {
-            path = path.replace("\\\\", "\\");
-        }
+    // fn normalize_nt_path(mut path: String) -> String {
+    // // Collapse \\ into \
+    //     while path.contains("\\\\") {
+    //         path = path.replace("\\\\", "\\");
+    //     }
 
-        // Remove trailing slash except root cases
-        if path.ends_with('\\') && !path.ends_with(":\\") {
-            path.pop();
-        }
+    //     // Remove trailing slash except root cases
+    //     if path.ends_with('\\') && !path.ends_with(":\\") {
+    //         path.pop();
+    //     }
 
-        path
+    //     path
+    // }
+
+    fn normalize_nt_path(path: &str, scope: ProtectionScope) -> String {
+    let mut p = path.trim().replace('/', "\\");
+
+    match scope {
+        ProtectionScope::File => {
+            // files → NO trailing slash
+            while p.ends_with('\\') {
+                p.pop();
+            }
+        }
+        ProtectionScope::Folder | ProtectionScope::FolderRecursive => {
+            // folders → MUST have trailing slash
+            if !p.ends_with('\\') {
+                p.push('\\');
+            }
+        }
     }
+
+    p
+}
 
 
     /// Resolve node ID to NT path (INTERNAL USE ONLY)
     /// ⚠️ This is the SECURITY BOUNDARY - never expose NT paths
-    pub fn resolve_nt_path(&self, node_id: u64) -> Result<String, String> {
-        println!("🔄 PathResolver: Resolving ID {} → NT path", node_id);
+    // pub fn resolve_nt_path(&self, node_id: u64) -> Result<String, String> {
+    //     println!("🔄 PathResolver: Resolving ID {} → NT path", node_id);
         
-        match self.index.resolve_nt_path(node_id) {
-            Some(nt_path) => {
+    //     match self.index.resolve_nt_path(node_id) {
+    //         Some(nt_path) => {
                 
-                let nt_path = Self::normalize_nt_path(nt_path);
-                // Validate NT path format
-                if !nt_path.starts_with("\\Device\\") {
-                    return Err(format!("Invalid NT path format: {}", nt_path));
-                }
+    //             let nt_path = Self::normalize_nt_path(nt_path);
+    //             // Validate NT path format
+    //             if !nt_path.starts_with("\\Device\\") {
+    //                 return Err(format!("Invalid NT path format: {}", nt_path));
+    //             }
                 
-                println!("   ✅ Resolved: {}", nt_path);
-                Ok(nt_path)
-            }
-            None => {
-                let error = format!("Node ID {} not found in filesystem index", node_id);
-                println!("   ❌ {}", error);
-                Err(error)
-            }
-        }
-    }
+    //             println!("   ✅ Resolved: {}", nt_path);
+    //             Ok(nt_path)
+    //         }
+    //         None => {
+    //             let error = format!("Node ID {} not found in filesystem index", node_id);
+    //             println!("   ❌ {}", error);
+    //             Err(error)
+    //         }
+    //     }
+    // }
     
+    // pub fn resolve_nt_path(&self, node_id: u64) -> Result<String, String> {
+    // let nt_path = self.index.resolve_nt_path(node_id)
+    //         .ok_or("Not found")?;
+
+    //     // ❗ NO NORMALIZATION HERE
+    //     Ok(nt_path)
+    // }
+
+      pub fn resolve_nt_path(&self, node_id: u64) -> Result<String, String> {
+        let nt_path = self.index.resolve_nt_path(node_id)
+            .ok_or("Not found")?;
+        
+        // 🔥 FIX: Remove double backslashes
+        let fixed_path = nt_path.replace("\\\\", "\\");
+        
+        Ok(fixed_path)
+    }
     /// Resolve policy intent to kernel-ready NT path(s)
     /// This handles recursive folder expansion
     pub fn resolve_policy_intent(&self, intent: &PolicyIntent) -> Result<Vec<String>, String> {
@@ -76,16 +114,34 @@ impl PathResolver {
                 Ok(vec![base_nt_path])
             }
             
+            // ProtectionScope::Folder => {
+            //     // Folder only (non-recursive) - needs trailing backslash
+            //     let mut folder_path = base_nt_path;
+            //     if !folder_path.ends_with('\\') {
+            //         folder_path.push('\\');
+            //     }
+            //     println!("   ✅ Folder (non-recursive): {}", folder_path);
+            //     Ok(vec![folder_path])
+            // }
             ProtectionScope::Folder => {
-                // Folder only (non-recursive) - needs trailing backslash
-                let mut folder_path = base_nt_path;
-                if !folder_path.ends_with('\\') {
-                    folder_path.push('\\');
+                // NON-RECURSIVE:
+                // Resolve only direct children (files only)
+                let children = self.index.get_children(intent.node_id);
+
+                let mut paths = Vec::new();
+
+               for child in children {
+                    if matches!(child.entry_type, EntryType::File) {
+                        if let Some(p) = self.index.resolve_nt_path(child.id) {
+                            paths.push(p); // exact file paths
+                        }
+                    }
                 }
-                println!("   ✅ Folder (non-recursive): {}", folder_path);
-                Ok(vec![folder_path])
+
+                println!("   ✅ Folder (non-recursive): {} direct files", paths.len());
+                Ok(paths)
             }
-            
+
             ProtectionScope::FolderRecursive => {
                 // Recursive folder - for now, just return folder path
                 // In production, you might want to enumerate all subpaths

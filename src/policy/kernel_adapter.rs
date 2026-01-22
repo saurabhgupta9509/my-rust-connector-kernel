@@ -163,7 +163,7 @@ pub fn from_kernel_policy(policy: &KernelPolicy) -> Self {
     // Operation flags
     // -----------------------------
     // Old kernel logic: block_read हमेशा 0
-    let (b_read, b_write, b_delete, b_rename, b_create, b_copy, b_execute) = 
+    let ( b_write, b_delete, b_rename, b_create) = 
         policy.blocked_ops.to_flags();
     
     // OLD KERNEL: is_folder = 1 for folders
@@ -173,15 +173,14 @@ pub fn from_kernel_policy(policy: &KernelPolicy) -> Self {
     };
     
     // READ = BLOCK ALL rule (enterprise DLP)
-    let block_all: u8 = if policy.blocked_ops.is_block_all() { 1 } else { 0 };
+    let block_all: u8 = if policy.block_all { 1 } else { 0 };
 
        println!("🔧 DEBUG FilePolicy creation:");
     println!("   Path: {}", policy.nt_path);
-    println!("   is_block_all() = {}", policy.blocked_ops.is_block_all());
-    println!("   blocked_ops.read = {}", policy.blocked_ops.read);
+    println!("   is_block_all() = {}", policy.block_all);
     println!("   block_all = {}", block_all);
-    println!("   Operations: W{} D{} RN{} C{} CP{} EX{}",
-        b_write, b_delete, b_rename, b_create, b_copy, b_execute);
+    println!("   Operations: W{} D{} RN{} C{}",
+        b_write, b_delete, b_rename, b_create);
 
         
     // -----------------------------
@@ -195,7 +194,7 @@ pub fn from_kernel_policy(policy: &KernelPolicy) -> Self {
         block_delete: b_delete,
         block_rename: b_rename,
         block_create: b_create,
-        block_all: block_all, // <-- यहाँ variable use करो!
+        block_all, // <-- यहाँ variable use करो!
         timestamp: policy.timestamp,
         added_by: added_by_wide,
         reserved: [0; 8],
