@@ -1,7 +1,7 @@
 //! Admin ↔ Agent Communication Layer (STEP 2)
 //! Secure, ID-based, read-only query API
 //! Core Principle: Admin only sees IDs, Agent owns filesystem truth
-
+// src/comms/mod.rs
 mod protocol;
 mod api_server;
 mod transport;

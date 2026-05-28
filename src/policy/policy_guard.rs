@@ -1,6 +1,6 @@
 //! Policy Guard - Safety Rules (STEP 7.4)
 //! Purpose: Prevent dangerous policies, require confirmations
-
+// src/policy/policy_guard.rs
 use super::policy_intent::{PolicyIntent, ProtectionAction, ProtectionScope};
 
 /// Safety validation result

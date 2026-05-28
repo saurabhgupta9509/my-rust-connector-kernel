@@ -1,6 +1,4 @@
 // src/fs_index.rs (fixed)
-//! Agent Filesystem Index - ID-based tree model with lazy loading
-
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use parking_lot::RwLock;

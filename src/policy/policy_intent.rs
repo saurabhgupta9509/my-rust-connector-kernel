@@ -1,6 +1,6 @@
 //! Policy Intent Model (STEP 4.1)
 //! Core Principle: Admin expresses intent, Agent implements it securely
-
+// src/policy/policy_intent.rs
 use serde::{Serialize, Deserialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 

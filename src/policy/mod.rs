@@ -1,7 +1,7 @@
 //! Policy Engine (STEP 4)
 //! Core Principle: Bridge Admin intent → kernel enforcement securely
 //! 🔐 SECURITY BOUNDARY: Only here are IDs resolved to NT paths
-
+// src/policy/mod.rs
 mod policy_intent;
 mod path_resolver;
 mod kernel_policy;

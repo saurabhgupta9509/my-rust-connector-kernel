@@ -1,6 +1,6 @@
 //! Communication Protocol - JSON-safe message definitions
 //! Core Principle: Admin only sees IDs, Agent owns filesystem truth
-
+// src/comms/protocol.rs
 use serde::{Serialize, Deserialize};
 
 // ========================

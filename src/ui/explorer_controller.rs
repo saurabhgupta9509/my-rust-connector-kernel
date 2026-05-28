@@ -1,6 +1,6 @@
 //! Explorer Controller (STEP 3)
 //! Core Principle: Coordinate UI state, interactions, and API calls
-
+// src/ui/explorer_controller.rs
 use super::explorer_state::{ExplorerState, SelectionInfo};
 use super::interaction_rules::InteractionEngine;
 use crate::comms::{QueryApiServer, AdminRequest, AgentResponse};

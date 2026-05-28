@@ -1,6 +1,6 @@
 //! Explorer Interaction Rules (STEP 3.2)
 //! Core Principle: Define how clicks behave, enforce STEP 2 API usage
-
+// src/ui/intreaction_rules.rs
 use super::explorer_state::{ExplorerState, SelectionInfo, PendingProtection};
 use crate::comms::{QueryApiServer, AdminRequest, AgentResponse};
 use std::sync::Arc;

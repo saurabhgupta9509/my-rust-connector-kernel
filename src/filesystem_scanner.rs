@@ -1,5 +1,5 @@
 //! Filesystem Scanner - Lazy directory expansion only
-
+// src/filesystem_scanner.rs
 #[cfg(windows)]
 use std::os::windows::fs::MetadataExt;
 use std::path::{Path, PathBuf};

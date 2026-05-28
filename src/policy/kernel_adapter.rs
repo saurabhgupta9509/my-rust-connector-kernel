@@ -1,6 +1,6 @@
 //! Kernel Adapter (STEP 4.4)
 //! Core Principle: Convert kernel policy to binary messages for minifilter
-
+// src/policy/kernel_adapter.rs
 use tokio::sync::mpsc;
 use windows_sys::Win32::Foundation::HANDLE;
 use std::ptr;

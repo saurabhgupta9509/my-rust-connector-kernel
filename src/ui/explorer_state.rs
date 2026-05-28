@@ -1,6 +1,6 @@
 //! Explorer UI State Model (STEP 3.1)
 //! Core Principle: UI remembers expand/collapse/selection states, Agent owns filesystem truth
-
+// src/ui/explorer_state.rs
 use std::collections::HashMap;
 use std::sync::Arc;
 use parking_lot::RwLock;

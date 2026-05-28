@@ -1,7 +1,7 @@
 //! Transport Layer - HTTP/WebSocket server for Admin communication (Design Only)
 //! Core Principle: Expose Query API Server over network
 //! IMPORTANT: This is design documentation only. Actual networking will be in STEP 3.
-
+// src/comms/transport.rs
 use super::api_server::QueryApiServer;
 use super::protocol::AdminRequest;
 use std::sync::Arc;

@@ -1,6 +1,6 @@
 //! NT Path Resolver - Single source of truth for DOS → NT path conversion
 //! IMPORTANT: Internal to Agent only
-
+// src/nt_path_resolver.rs
 use windows_sys::Win32::Storage::FileSystem::{
     GetVolumeNameForVolumeMountPointW,
     GetVolumePathNamesForVolumeNameW

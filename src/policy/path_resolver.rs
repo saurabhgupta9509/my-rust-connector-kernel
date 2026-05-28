@@ -386,7 +386,7 @@
 
 //! Path Resolver (STEP 4.2) - Uses unified NT path resolver
 //! Core Principle: Only Agent resolves IDs to NT paths, never exposed to Admin
-
+// src/policy/path_resolver.rs
 use crate::fs_index::{EntryType, FilesystemIndex};
 use crate::nt_path_resolver::NtPathResolver;
 use crate::policy::policy_intent::{PolicyIntent, ProtectionScope};

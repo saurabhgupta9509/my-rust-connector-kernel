@@ -1,6 +1,6 @@
 //! Query Interface - Safe, read-only API for Admin Server
 //! Core Principle: Admin only sees IDs, never NT paths
-
+// src/query_interface.rs
 use super::fs_index::{FilesystemIndex, FileSystemNode, EntryType};
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ pub struct SafeNodeInfo {
     pub has_children: bool,
     pub is_expanded: bool,
     pub is_accessible: bool,
-     pub display_path: String,
+    pub display_path: String,
 }
 
 /// Drive information for Admin

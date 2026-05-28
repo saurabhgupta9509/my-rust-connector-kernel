@@ -1,7 +1,7 @@
 //! Kernel Policy Model (STEP 4.3)
 //! Core Principle: Convert Admin intent to kernel-understandable rules
 //! IMPORTANT: Implements READ = BLOCK ALL enterprise DLP rule
-
+// src/policy/kernel_policy.rs
 use crate::policy::{
     ProtectionScope,
     policy_intent::{ PolicyIntent, ProtectionAction, ProtectionOperations },

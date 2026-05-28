@@ -1,7 +1,7 @@
 //! Explorer UI Behavior (STEP 3)
 //! Core Principle: Admin sees ONLY IDs, never NT paths
 //! UI manages expand/collapse/loading/selection states
-
+// src/ui/mod.rs
 mod explorer_state;
 mod interaction_rules;
 mod explorer_controller;

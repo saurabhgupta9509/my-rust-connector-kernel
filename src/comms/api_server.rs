@@ -1,6 +1,6 @@
 //! Query API Server - Safe, read-only API for Admin Server
 //! Core Principle: Admin only sees IDs, Agent owns filesystem truth
-
+// src/comms/api_server.rs
 use super::protocol::{ AdminRequest, AgentResponse, ErrorCode, DriveInfo, NodeInfo, StatsInfo };
 use crate::filesystem_scanner::FileSystemScanner;
 use crate::query_interface::{ QueryInterface, QueryResponse, SystemStats, ScanState };
